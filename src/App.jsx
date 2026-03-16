@@ -60,27 +60,27 @@ export default function App() {
   if (!user) return <LoginPage onLogin={login} error={error} setError={setError} />;
 
   const openModal = (todo = null) => {
-  if (todo) {
-    setEditTodo(todo); setInput(todo.teks); setDesc(todo.desc || "");
-    setDeadline(todo.deadline || ""); setAssignTo(todo.user); setPriority(todo.priority || "medium");
-    setSelectedPC(todo.profitCenters || []); setImageRef(todo.imageRef || null); // ← tambah ini
-  } else {
-    setEditTodo(null); setInput(""); setDesc(""); setDeadline("");
-    setAssignTo(members[0]?.name || "");
-    setPriority("medium"); setSelectedPC([]); setImageRef(null); // ← tambah ini
-  }
-  setShowModal(true);
-};
+    if (todo) {
+      setEditTodo(todo); setInput(todo.teks); setDesc(todo.desc || "");
+      setDeadline(todo.deadline || ""); setAssignTo(todo.user); setPriority(todo.priority || "medium");
+      setSelectedPC(todo.profitCenters || []); setImageRef(todo.imageRef || null); // ← tambah ini
+    } else {
+      setEditTodo(null); setInput(""); setDesc(""); setDeadline("");
+      setAssignTo(members[0]?.name || "");
+      setPriority("medium"); setSelectedPC([]); setImageRef(null); // ← tambah ini
+    }
+    setShowModal(true);
+  };
 
   const closeModal = () => { setShowModal(false); setEditTodo(null); };
 
   const simpan = () => {
-  if (!input) return;
-  const data = { teks: input, desc, deadline: deadline || null, user: assignTo, priority, profitCenters: selectedPC, imageRef: imageRef || null }; // ← tambah imageRef
-  if (editTodo) editTodoItem(editTodo.id, data);
-  else tambahTodo(data);
-  closeModal();
-};
+    if (!input) return;
+    const data = { teks: input, desc, deadline: deadline || null, user: assignTo, priority, profitCenters: selectedPC, imageRef: imageRef || null }; // ← tambah imageRef
+    if (editTodo) editTodoItem(editTodo.id, data);
+    else tambahTodo(data);
+    closeModal();
+  };
 
   const todosTampil = todos.filter(t => {
     const matchUser = filterUser === "semua" || t.user === filterUser;
@@ -116,7 +116,9 @@ export default function App() {
         {Object.entries(KOLOM).map(([key, col]) => {
           const colTodos = todosTampil.filter(t => t.status === key);
           return (
-            <DroppableCol key={key} id={key} color={col.color} label={col.label} icon={col.icon} count={colTodos.length}>
+            <DroppableCol key={key} id={key} color={col.color} label={col.label} icon={col.icon} count={colTodos.length}
+              onAddTask={() => openModal()} // ← tambah ini
+            >
               {colTodos.map(todo => (
                 <DraggableCard key={todo.id} todo={todo} openModal={openModal} onDelete={id => setConfirmDelete(id)} isDeadlineLewat={isDeadlineLewat} />
               ))}
@@ -221,7 +223,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f0f2f5", fontFamily: "'Segoe UI', sans-serif" }}>
-      <Sidebar filterUser={filterUser} setFilterUser={setFilterUser} stats={stats} members={members} />
+      <Sidebar filterUser={filterUser} setFilterUser={setFilterUser} stats={stats} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ padding: "24px 30px 0", background: "#f0f2f5" }}>
@@ -262,22 +264,22 @@ export default function App() {
                     {notifications.length === 0
                       ? <div style={{ padding: "20px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>Tidak ada notifikasi</div>
                       : notifications.map(n => {
-                          const todo = todos.find(t => t.id === n.todoId);
-                          return (
-                            <div key={n.id}
-                              onClick={() => { if (todo) { setViewTodo(todo); setShowNotif(false); } }}
-                              style={{ padding: "12px 16px", borderBottom: "1px solid #f9f9f9", background: n.read ? "white" : "#f8f9ff", cursor: todo ? "pointer" : "default" }}
-                              onMouseEnter={e => e.currentTarget.style.background = "#f0f4ff"}
-                              onMouseLeave={e => e.currentTarget.style.background = n.read ? "white" : "#f8f9ff"}
-                            >
-                              <div style={{ fontSize: "13px", color: "#1a1a2e", fontWeight: n.read ? "400" : "600" }}>{n.message}</div>
-                              <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px", display: "flex", justifyContent: "space-between" }}>
-                                <span>{new Date(n.createdAt).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" })} - {new Date(n.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB</span>
-                                {todo && <span style={{ color: "#4361ee" }}>Lihat task →</span>}
-                              </div>
+                        const todo = todos.find(t => t.id === n.todoId);
+                        return (
+                          <div key={n.id}
+                            onClick={() => { if (todo) { setViewTodo(todo); setShowNotif(false); } }}
+                            style={{ padding: "12px 16px", borderBottom: "1px solid #f9f9f9", background: n.read ? "white" : "#f8f9ff", cursor: todo ? "pointer" : "default" }}
+                            onMouseEnter={e => e.currentTarget.style.background = "#f0f4ff"}
+                            onMouseLeave={e => e.currentTarget.style.background = n.read ? "white" : "#f8f9ff"}
+                          >
+                            <div style={{ fontSize: "13px", color: "#1a1a2e", fontWeight: n.read ? "400" : "600" }}>{n.message}</div>
+                            <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px", display: "flex", justifyContent: "space-between" }}>
+                              <span>{new Date(n.createdAt).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" })} - {new Date(n.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB</span>
+                              {todo && <span style={{ color: "#4361ee" }}>Lihat task →</span>}
                             </div>
-                          );
-                        })
+                          </div>
+                        );
+                      })
                     }
                   </div>
                 )}
@@ -338,6 +340,8 @@ export default function App() {
             view={view} setView={setView}
             search={search} setSearch={setSearch}
             filterPriority={filterPriority} setFilterPriority={setFilterPriority}
+            filterUser={filterUser} setFilterUser={setFilterUser}
+            members={members}
             todos={todos}
           />
 
@@ -361,7 +365,7 @@ export default function App() {
           onSave={simpan} onClose={closeModal}
           members={members}
           imageRef={imageRef}
-  setImageRef={setImageRef}
+          setImageRef={setImageRef}
         />
       )}
 

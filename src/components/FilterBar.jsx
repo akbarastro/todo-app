@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { exportToExcel, importFromExcel } from "../utils/excelHandler";
 
-export default function FilterBar({ view, setView, search, setSearch, filterPriority, setFilterPriority, todos, setTodos }) {
+export default function FilterBar({ view, setView, search, setSearch, filterPriority, setFilterPriority, filterUser, setFilterUser, members, todos }) {
   const fileInputRef = useRef();
 
   const handleImport = async (e) => {
@@ -9,7 +9,6 @@ export default function FilterBar({ view, setView, search, setSearch, filterPrio
     if (!file) return;
     try {
       const result = await importFromExcel(file, todos);
-      setTodos(result);
       alert(`✅ Berhasil import ${result.length - todos.length} todo!`);
     } catch (err) {
       alert("❌ " + err);
@@ -43,6 +42,16 @@ export default function FilterBar({ view, setView, search, setSearch, filterPrio
 
       <div style={{ width: "1px", height: "24px", background: "#e0e0e0" }} />
 
+      {/* Filter Assign To */}
+      <select value={filterUser} onChange={e => setFilterUser(e.target.value)} style={{ padding: "7px 12px", borderRadius: "8px", border: "1px solid #e0e0e0", background: "white", color: "#666", fontSize: "13px", cursor: "pointer", outline: "none" }}>
+        <option value="semua">👤 All Members</option>
+        {members.map(m => (
+          <option key={m.uid} value={m.name}>👤 {m.name}</option>
+        ))}
+      </select>
+
+      <div style={{ width: "1px", height: "24px", background: "#e0e0e0" }} />
+
       {/* Filter Priority */}
       <select value={filterPriority} onChange={e => setFilterPriority(e.target.value)} style={{ padding: "7px 12px", borderRadius: "8px", border: "1px solid #e0e0e0", background: "white", color: "#666", fontSize: "13px", cursor: "pointer", outline: "none" }}>
         <option value="semua">🏷️ All Priority</option>
@@ -51,8 +60,8 @@ export default function FilterBar({ view, setView, search, setSearch, filterPrio
         <option value="low">🟢 Low</option>
       </select>
 
-      {(search || filterPriority !== "semua") && (
-        <button onClick={() => { setSearch(""); setFilterPriority("semua"); }} style={{ padding: "7px 12px", borderRadius: "8px", border: "1px solid #e94560", background: "white", color: "#e94560", cursor: "pointer", fontSize: "13px" }}>
+      {(search || filterPriority !== "semua" || filterUser !== "semua") && (
+        <button onClick={() => { setSearch(""); setFilterPriority("semua"); setFilterUser("semua"); }} style={{ padding: "7px 12px", borderRadius: "8px", border: "1px solid #e94560", background: "white", color: "#e94560", cursor: "pointer", fontSize: "13px" }}>
           ✖ Reset
         </button>
       )}
@@ -60,19 +69,16 @@ export default function FilterBar({ view, setView, search, setSearch, filterPrio
       <div style={{ width: "1px", height: "24px", background: "#e0e0e0" }} />
 
       {/* Export */}
-      <button
-        onClick={() => exportToExcel(todos)}
-        style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid #4caf50", background: "white", color: "#4caf50", cursor: "pointer", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+      <button onClick={() => exportToExcel(todos)} style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid #4caf50", background: "white", color: "#4caf50", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
         📥 Export
       </button>
 
       {/* Import */}
-      <button
-        onClick={() => fileInputRef.current.click()}
-        style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid #4361ee", background: "white", color: "#4361ee", cursor: "pointer", fontSize: "13px", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}>
+      <button onClick={() => fileInputRef.current.click()} style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid #4361ee", background: "white", color: "#4361ee", cursor: "pointer", fontSize: "13px", fontWeight: "600" }}>
         📤 Import
       </button>
       <input ref={fileInputRef} type="file" accept=".xlsx,.xls" onChange={handleImport} style={{ display: "none" }} />
+
     </div>
   );
 }

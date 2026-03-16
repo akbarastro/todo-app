@@ -1,7 +1,4 @@
-import { useState } from "react";
-
-export default function Sidebar({ filterUser, setFilterUser, stats, members }) {
-  const [menuDesignerOpen, setMenuDesignerOpen] = useState(true);
+export default function Sidebar({ stats }) {
   const { total, selesai, progress, lewat } = stats;
 
   return (
@@ -13,20 +10,9 @@ export default function Sidebar({ filterUser, setFilterUser, stats, members }) {
 
       <p style={{ color: "#bbb", fontSize: "11px", marginBottom: "6px", letterSpacing: "1px", padding: "0 8px" }}>MENU</p>
 
-      <button onClick={() => setMenuDesignerOpen(o => !o)} style={{ padding: "10px 14px", borderRadius: "8px", border: "none", background: "#f0f2f5", color: "#1a1a2e", cursor: "pointer", fontSize: "14px", width: "100%", textAlign: "left", fontWeight: "600", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span>👥 Designer</span>
-        <span style={{ fontSize: "11px", color: "#aaa", display: "inline-block", transform: menuDesignerOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▼</span>
+      <button style={{ padding: "10px 14px", borderRadius: "8px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", width: "100%", textAlign: "left", fontWeight: "600", display: "flex", alignItems: "center", gap: "8px" }}>
+        🏠 Home
       </button>
-
-      {menuDesignerOpen && (
-        <div style={{ paddingLeft: "8px", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
-          {["semua", ...members.map(m => m.name)].map(u => (
-            <button key={u} onClick={() => setFilterUser(u)} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", background: filterUser === u ? "#4361ee" : "transparent", color: filterUser === u ? "white" : "#666", cursor: "pointer", fontSize: "13px", width: "100%", textAlign: "left", fontWeight: filterUser === u ? "600" : "400" }}>
-              👤 {u}
-            </button>
-          ))}
-        </div>
-      )}
 
       <div style={{ marginTop: "auto", background: "#f8f9ff", borderRadius: "10px", padding: "14px", fontSize: "13px", color: "#666", lineHeight: "2" }}>
         <div>📋 Total: <strong>{total}</strong></div>
