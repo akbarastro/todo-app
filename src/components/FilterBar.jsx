@@ -27,6 +27,9 @@ export default function FilterBar({ view, setView, search, setSearch, filterPrio
             {label}
           </button>
         ))}
+        <button onClick={() => setView("weekly")} style={{ padding: "8px 14px", borderRadius: "8px", border: "none", background: view === "weekly" ? "#4361ee" : "transparent", color: view === "weekly" ? "white" : "#666", cursor: "pointer", fontSize: "13px", fontWeight: "500" }}>
+  📅 Weekly
+</button>
       </div>
 
       <div style={{ width: "1px", height: "24px", background: "#e0e0e0" }} />

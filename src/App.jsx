@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DndContext, PointerSensor, useSensor, useSensors, DragOverlay, rectIntersection } from "@dnd-kit/core";
 import useTodos from "./hooks/useTodos";
 import useAuth from "./hooks/useAuth";
@@ -12,10 +12,23 @@ import ModalTodo from "./components/ModalTodo";
 import ModalDelete from "./components/ModalDelete";
 import LoginPage from "./components/LoginPage";
 import PCLabel from "./components/PCLabel";
+import WeeklyCalendar from "./components/WeeklyCalendar";
+import ModalView from "./components/ModalView";
 
 export default function App() {
   const { user, login, logout, error, setError } = useAuth();
   const { todos, setTodos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat } = useTodos();
+
+  const [viewTodo, setViewTodo] = useState(null);
+
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  useEffect(() => {
+  const handler = (e) => {
+    if (!e.target.closest("[data-dropdown]")) setDropdownOpen(false);
+  };
+  document.addEventListener("mousedown", handler);
+  return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const [showModal, setShowModal] = useState(false);
   const [editTodo, setEditTodo] = useState(null);
@@ -209,24 +222,58 @@ export default function App() {
         <div style={{ padding: "24px 30px 0", background: "#f0f2f5" }}>
 
           {/* HEADER */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-            <div>
-              <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>To Do List</h1>
-              <p style={{ color: "#aaa", fontSize: "13px" }}>{new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a2e" }}>👤 {user.name}</div>
-                <div style={{ fontSize: "11px", color: "#aaa", textTransform: "capitalize" }}>{user.role}</div>
-              </div>
-              <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
-                ＋ Add Task
-              </button>
-              <button onClick={logout} style={{ padding: "11px 16px", borderRadius: "10px", border: "1px solid #e0e0e0", background: "white", color: "#666", cursor: "pointer", fontSize: "14px" }}>
-                🚪 Logout
-              </button>
-            </div>
-          </div>
+<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+  <div>
+    <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>To Do List</h1>
+    <p style={{ color: "#aaa", fontSize: "13px" }}>{new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+  </div>
+  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+    
+    {/* Add Task — pindah ke kiri */}
+    <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
+      ＋ Add Task
+    </button>
+
+    {/* User dropdown */}
+    <div style={{ position: "relative" }} data-dropdown>
+      <button onClick={() => setDropdownOpen(o => !o)} style={{
+        display: "flex", alignItems: "center", gap: "10px",
+        padding: "8px 14px", borderRadius: "10px", border: "1px solid #e0e0e0",
+        background: "white", cursor: "pointer",
+      }}>
+        <span style={{ fontSize: "20px" }}>👤</span>
+        <div style={{ textAlign: "left" }}>
+          <div style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a2e" }}>{user.name}</div>
+          <div style={{ fontSize: "11px", color: "#aaa", textTransform: "capitalize" }}>{user.role}</div>
+        </div>
+        <span style={{ fontSize: "11px", color: "#aaa" }}>{dropdownOpen ? "▴" : "▾"}</span>
+      </button>
+
+      {dropdownOpen && (
+        <div style={{
+          position: "absolute", top: "110%", right: 0,
+          background: "white", borderRadius: "10px",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+          border: "1px solid #f0f0f0", minWidth: "160px", zIndex: 100,
+        }}>
+          <button onClick={() => { logout(); setDropdownOpen(false); }} style={{
+            width: "100%", padding: "12px 16px", border: "none",
+            background: "none", cursor: "pointer", textAlign: "left",
+            fontSize: "13px", color: "#e94560", fontWeight: "500",
+            display: "flex", alignItems: "center", gap: "8px",
+            borderRadius: "10px",
+          }}
+            onMouseEnter={e => e.currentTarget.style.background = "#fff0f3"}
+            onMouseLeave={e => e.currentTarget.style.background = "none"}
+          >
+            🚪 Logout
+          </button>
+        </div>
+      )}
+    </div>
+
+  </div>
+</div>
 
           {/* STAT CARDS */}
           <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
@@ -260,6 +307,7 @@ export default function App() {
           {view === "kanban" && renderKanban()}
           {view === "list" && renderList()}
           {view === "calendar" && renderKalender()}
+          {view === "weekly" && <WeeklyCalendar todos={todosTampil} openModal={openModal} onView={setViewTodo} />}
         </div>
       </div>
 
@@ -279,6 +327,15 @@ export default function App() {
           onCancel={() => setConfirmDelete(null)}
         />
       )}
+      {viewTodo && (
+      <ModalView
+      todo={viewTodo}
+      onEdit={() => { openModal(viewTodo); setViewTodo(null); }}
+      onClose={() => setViewTodo(null)}
+      isDeadlineLewat={isDeadlineLewat}
+      />
+      )}
     </div>
+    
   );
 }
