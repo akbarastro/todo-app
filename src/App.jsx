@@ -236,10 +236,6 @@ export default function App() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
 
-              <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
-                ＋ Add Task
-              </button>
-
               {/* Notifikasi Bell */}
               <div style={{ position: "relative" }} data-notif>
                 <button onClick={() => setShowNotif(o => !o)} style={{ position: "relative", background: "white", border: "1px solid #e0e0e0", borderRadius: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "18px" }}>
@@ -336,14 +332,15 @@ export default function App() {
           </div>
 
           {/* FILTER BAR */}
-          <FilterBar
-            view={view} setView={setView}
-            search={search} setSearch={setSearch}
-            filterPriority={filterPriority} setFilterPriority={setFilterPriority}
-            filterUser={filterUser} setFilterUser={setFilterUser}
-            members={members}
-            todos={todos}
-          />
+         <FilterBar
+  view={view} setView={setView}
+  search={search} setSearch={setSearch}
+  filterPriority={filterPriority} setFilterPriority={setFilterPriority}
+  filterUser={filterUser} setFilterUser={setFilterUser}
+  members={members}
+  todos={todos}
+  onAddTask={() => openModal()}
+/>
 
         </div>{/* tutup padding div */}
 
