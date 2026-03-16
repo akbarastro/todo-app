@@ -25,11 +25,11 @@ export default function App() {
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   useEffect(() => {
-  const handler = (e) => {
-    if (!e.target.closest("[data-dropdown]")) setDropdownOpen(false);
-  };
-  document.addEventListener("mousedown", handler);
-  return () => document.removeEventListener("mousedown", handler);
+    const handler = (e) => {
+      if (!e.target.closest("[data-dropdown]")) setDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const [showModal, setShowModal] = useState(false);
@@ -126,7 +126,7 @@ export default function App() {
       <DragOverlay>
         {activeTodo && (
           <div style={{ transform: "rotate(2deg)", width: "300px" }}>
-            <CardContent todo={activeTodo} openModal={() => {}} onDelete={() => {}} isDeadlineLewat={isDeadlineLewat} style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }} />
+            <CardContent todo={activeTodo} openModal={() => { }} onDelete={() => { }} isDeadlineLewat={isDeadlineLewat} style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }} />
           </div>
         )}
       </DragOverlay>
@@ -226,72 +226,72 @@ export default function App() {
         <div style={{ padding: "24px 30px 0", background: "#f0f2f5" }}>
 
           {/* HEADER */}
-<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-  <div>
-    <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>To Do List</h1>
-    <p style={{ color: "#aaa", fontSize: "13px" }}>{new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
-  </div>
-  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-    
-    {/* Add Task — pindah ke kiri */}
-    <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
-      ＋ Add Task
-    </button>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+            <div>
+              <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>To Do List</h1>
+              <p style={{ color: "#aaa", fontSize: "13px" }}>{new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
 
-    {/* User dropdown */}
-    <div style={{ position: "relative" }} data-dropdown>
-      <button onClick={() => setDropdownOpen(o => !o)} style={{
-        display: "flex", alignItems: "center", gap: "10px",
-        padding: "8px 14px", borderRadius: "10px", border: "1px solid #e0e0e0",
-        background: "white", cursor: "pointer",
-      }}>
-        <span style={{ fontSize: "20px" }}>👤</span>
-        <div style={{ textAlign: "left" }}>
-          <div style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a2e" }}>{user.name}</div>
-          <div style={{ fontSize: "11px", color: "#aaa", textTransform: "capitalize" }}>{user.role}</div>
-        </div>
-        <span style={{ fontSize: "11px", color: "#aaa" }}>{dropdownOpen ? "▴" : "▾"}</span>
-      </button>
+              {/* Add Task — pindah ke kiri */}
+              <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
+                ＋ Add Task
+              </button>
 
-      {dropdownOpen && (
-        <div style={{
-          position: "absolute", top: "110%", right: 0,
-          background: "white", borderRadius: "10px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
-          border: "1px solid #f0f0f0", minWidth: "160px", zIndex: 100,
-        }}>
-          {user?.role === "admin" && (
-        <button onClick={() => { setShowSettings(true); setDropdownOpen(false); }} style={{
-    width: "100%", padding: "12px 16px", border: "none",
-    background: "none", cursor: "pointer", textAlign: "left",
-    fontSize: "13px", color: "#4361ee", fontWeight: "500",
-    display: "flex", alignItems: "center", gap: "8px",
-    borderRadius: "10px",
-  }}
-    onMouseEnter={e => e.currentTarget.style.background = "#eef0ff"}
-    onMouseLeave={e => e.currentTarget.style.background = "none"}
-  >
-    ⚙️ Settings
-  </button>
-)}
-          <button onClick={() => { logout(); setDropdownOpen(false); }} style={{
-            width: "100%", padding: "12px 16px", border: "none",
-            background: "none", cursor: "pointer", textAlign: "left",
-            fontSize: "13px", color: "#e94560", fontWeight: "500",
-            display: "flex", alignItems: "center", gap: "8px",
-            borderRadius: "10px",
-          }}
-            onMouseEnter={e => e.currentTarget.style.background = "#fff0f3"}
-            onMouseLeave={e => e.currentTarget.style.background = "none"}
-          >
-            🚪 Logout
-          </button>
-        </div>
-      )}
-    </div>
+              {/* User dropdown */}
+              <div style={{ position: "relative" }} data-dropdown>
+                <button onClick={() => setDropdownOpen(o => !o)} style={{
+                  display: "flex", alignItems: "center", gap: "10px",
+                  padding: "8px 14px", borderRadius: "10px", border: "1px solid #e0e0e0",
+                  background: "white", cursor: "pointer",
+                }}>
+                  <span style={{ fontSize: "20px" }}>👤</span>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a2e" }}>{user.name}</div>
+                    <div style={{ fontSize: "11px", color: "#aaa", textTransform: "capitalize" }}>{user.role}</div>
+                  </div>
+                  <span style={{ fontSize: "11px", color: "#aaa" }}>{dropdownOpen ? "▴" : "▾"}</span>
+                </button>
 
-  </div>
-</div>
+                {dropdownOpen && (
+                  <div style={{
+                    position: "absolute", top: "110%", right: 0,
+                    background: "white", borderRadius: "10px",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
+                    border: "1px solid #f0f0f0", minWidth: "160px", zIndex: 100,
+                  }}>
+                    {user?.role === "admin" && (
+                      <button onClick={() => { setShowSettings(true); setDropdownOpen(false); }} style={{
+                        width: "100%", padding: "12px 16px", border: "none",
+                        background: "none", cursor: "pointer", textAlign: "left",
+                        fontSize: "13px", color: "#4361ee", fontWeight: "500",
+                        display: "flex", alignItems: "center", gap: "8px",
+                        borderRadius: "10px",
+                      }}
+                        onMouseEnter={e => e.currentTarget.style.background = "#eef0ff"}
+                        onMouseLeave={e => e.currentTarget.style.background = "none"}
+                      >
+                        ⚙️ Settings
+                      </button>
+                    )}
+                    <button onClick={() => { logout(); setDropdownOpen(false); }} style={{
+                      width: "100%", padding: "12px 16px", border: "none",
+                      background: "none", cursor: "pointer", textAlign: "left",
+                      fontSize: "13px", color: "#e94560", fontWeight: "500",
+                      display: "flex", alignItems: "center", gap: "8px",
+                      borderRadius: "10px",
+                    }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#fff0f3"}
+                      onMouseLeave={e => e.currentTarget.style.background = "none"}
+                    >
+                      🚪 Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
 
           {/* STAT CARDS */}
           <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
@@ -313,10 +313,10 @@ export default function App() {
 
           {/* FILTER BAR */}
           <FilterBar
-          view={view} setView={setView}
-          search={search} setSearch={setSearch}
-          filterPriority={filterPriority} setFilterPriority={setFilterPriority}
-          todos={todos}
+            view={view} setView={setView}
+            search={search} setSearch={setSearch}
+            filterPriority={filterPriority} setFilterPriority={setFilterPriority}
+            todos={todos}
           />
         </div>
 
@@ -346,24 +346,24 @@ export default function App() {
         />
       )}
       {viewTodo && (
-      <ModalView
-      todo={viewTodo}
-      onEdit={() => { openModal(viewTodo); setViewTodo(null); }}
-      onClose={() => setViewTodo(null)}
-      isDeadlineLewat={isDeadlineLewat}
-      />
+        <ModalView
+          todo={viewTodo}
+          onEdit={() => { openModal(viewTodo); setViewTodo(null); }}
+          onClose={() => setViewTodo(null)}
+          isDeadlineLewat={isDeadlineLewat}
+        />
       )}
 
       {showSettings && (
-  <ModalSettings
-    members={members}
-    currentUser={user}
-    onAdd={addMember}
-    onDelete={deleteMember}
-    onClose={() => setShowSettings(false)}
-  />
-)}
+        <ModalSettings
+          members={members}
+          currentUser={user}
+          onAdd={addMember}
+          onDelete={deleteMember}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </div>
-    
+
   );
 }
