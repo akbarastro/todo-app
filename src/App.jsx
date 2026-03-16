@@ -15,11 +15,14 @@ import PCLabel from "./components/PCLabel";
 import WeeklyCalendar from "./components/WeeklyCalendar";
 import ModalView from "./components/ModalView";
 import ModalSettings from "./components/ModalSettings";
+import useNotifications from "./hooks/useNotifications";
 
 
 export default function App() {
   const { user, login, logout, error, setError, loading, members, addMember, deleteMember } = useAuth();
   const { todos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat } = useTodos(user);
+  const { notifications, unreadCount, markAllRead } = useNotifications(user);
+  const [showNotif, setShowNotif] = useState(false);
 
   const [viewTodo, setViewTodo] = useState(null);
 
@@ -27,6 +30,7 @@ export default function App() {
   useEffect(() => {
     const handler = (e) => {
       if (!e.target.closest("[data-dropdown]")) setDropdownOpen(false);
+      if (!e.target.closest("[data-notif]")) setShowNotif(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -237,6 +241,34 @@ export default function App() {
               <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
                 ＋ Add Task
               </button>
+              {/* Notifikasi Bell */}
+              <div style={{ position: "relative" }} data-notif>
+                <button onClick={() => { setShowNotif(o => !o); markAllRead(); }} style={{ position: "relative", background: "white", border: "1px solid #e0e0e0", borderRadius: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "18px" }}>
+                  🔔
+                  {unreadCount > 0 && (
+                    <span style={{ position: "absolute", top: "-6px", right: "-6px", background: "#e94560", color: "white", borderRadius: "50%", fontSize: "11px", fontWeight: "700", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+
+                {showNotif && (
+                  <div style={{ position: "absolute", top: "110%", right: 0, background: "white", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", border: "1px solid #f0f0f0", width: "320px", zIndex: 100, maxHeight: "400px", overflowY: "auto" }}>
+                    <div style={{ padding: "14px 16px", borderBottom: "1px solid #f0f0f0", fontWeight: "700", fontSize: "14px", color: "#1a1a2e" }}>
+                      🔔 Notifikasi
+                    </div>
+                    {notifications.length === 0
+                      ? <div style={{ padding: "20px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>Tidak ada notifikasi</div>
+                      : notifications.map(n => (
+                        <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #f9f9f9", background: n.read ? "white" : "#f8f9ff" }}>
+                          <div style={{ fontSize: "13px", color: "#1a1a2e" }}>{n.message}</div>
+                          <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px" }}>{new Date(n.createdAt).toLocaleString("id-ID")}</div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                )}
+              </div>
 
               {/* User dropdown */}
               <div style={{ position: "relative" }} data-dropdown>
@@ -335,6 +367,7 @@ export default function App() {
           deadline={deadline} setDeadline={setDeadline} assignTo={assignTo} setAssignTo={setAssignTo}
           priority={priority} setPriority={setPriority} selectedPC={selectedPC} setSelectedPC={setSelectedPC}
           onSave={simpan} onClose={closeModal}
+          members={members}
         />
       )}
 

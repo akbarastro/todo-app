@@ -10,8 +10,6 @@ export default function useTodos(user) {
 
   useEffect(() => {
     if (!user) return;
-
-    // Admin lihat semua, member lihat milik sendiri
     const q = user.role === "admin"
       ? query(collection(db, "todos"), orderBy("createdAt", "desc"))
       : query(collection(db, "todos"), where("user", "==", user.name), orderBy("createdAt", "desc"));
@@ -19,20 +17,35 @@ export default function useTodos(user) {
     const unsub = onSnapshot(q, (snap) => {
       setTodos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-
     return () => unsub();
   }, [user]);
 
   const tambahTodo = async (data) => {
-    await addDoc(collection(db, "todos"), {
+    const ref = await addDoc(collection(db, "todos"), {
       ...data,
       status: "todo",
+      createdAt: new Date().toISOString(),
+    });
+    // Kirim notifikasi ke member yang di-assign
+    await addDoc(collection(db, "notifications"), {
+      toUser: data.user,
+      message: `📋 Task baru untukmu: "${data.teks}"`,
+      todoId: ref.id,
+      read: false,
       createdAt: new Date().toISOString(),
     });
   };
 
   const editTodoItem = async (id, data) => {
     await updateDoc(doc(db, "todos", id), data);
+    // Notifikasi jika assign berubah
+    await addDoc(collection(db, "notifications"), {
+      toUser: data.user,
+      message: `✏️ Task diupdate: "${data.teks}"`,
+      todoId: id,
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
   };
 
   const hapusTodo = async (id) => {

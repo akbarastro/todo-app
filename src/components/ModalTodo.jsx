@@ -1,7 +1,7 @@
-import { USERS, PRIORITY, INPUT_STYLE } from "../constants";
+import { PRIORITY, INPUT_STYLE } from "../constants";
 import ProfitCenterPicker from "./ProfitCenterPicker";
 
-export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, deadline, setDeadline, assignTo, setAssignTo, priority, setPriority, selectedPC, setSelectedPC, onSave, onClose }) {
+export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, deadline, setDeadline, assignTo, setAssignTo, priority, setPriority, selectedPC, setSelectedPC, onSave, onClose, members }) {
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(4px)" }}>
       <div style={{ background: "white", borderRadius: "16px", padding: "32px", width: "520px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.15)", display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -31,7 +31,7 @@ export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, de
             <div style={{ flex: 1 }}>
               <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>Assign To</label>
               <select value={assignTo} onChange={e => setAssignTo(e.target.value)} style={INPUT_STYLE}>
-                {USERS.map(u => <option key={u} value={u}>{u}</option>)}
+                {members.map(m => <option key={m.uid} value={m.name}>{m.name}</option>)}
               </select>
             </div>
           </div>
