@@ -28,8 +28,13 @@ export default function CardContent({ todo, openModal, onDelete, isDeadlineLewat
       {todo.deadline && <div style={{ fontSize: "11px", color: lewat ? "#e94560" : "#888", marginBottom: "10px" }}>📅 {new Date(todo.deadline).toLocaleDateString("id-ID")} {lewat && "⚠️"}</div>}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #f5f5f5", paddingTop: "10px" }}>
         <UserAvatar name={todo.user} />
-        <span style={{ fontSize: "11px", color: "#bbb" }}>🕒 {todo.createdAt}</span>
+        <span style={{ fontSize: "11px", color: "#bbb" }}>🕒 {new Date(todo.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(todo.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB</span>
       </div>
+      {todo.imageRef && (
+        <div style={{ marginBottom: "10px", borderRadius: "8px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
+          <img src={todo.imageRef} alt="referensi" style={{ width: "100%", maxHeight: "120px", objectFit: "cover", display: "block" }} />
+        </div>
+      )}
     </div>
   );
 }

@@ -2,9 +2,14 @@ import { useDroppable } from "@dnd-kit/core";
 
 export default function DroppableCol({ id, color, label, icon, count, children }) {
   const { setNodeRef, isOver } = useDroppable({ id });
-
+  // Tambah mapping background kolom
+  const colBg = {
+    todo: "#f8f9fa",
+    progress: "#eef4ff",
+    selesai: "#f0fff4",
+  }[id] || "#f8f9fa";  // ← pakai id, bukan todo.status
   return (
-    <div style={{ background: isOver ? color + "18" : "#f8f9fa", borderRadius: "14px", padding: "16px", transition: "background 0.2s", border: `2px solid ${isOver ? color : "transparent"}` }}>
+    <div style={{ background: isOver ? color + "18" : colBg, borderRadius: "14px", padding: "16px", transition: "background 0.2s", border: `2px solid ${isOver ? color : "transparent"}` }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <span style={{ color, fontSize: "16px" }}>{icon}</span>

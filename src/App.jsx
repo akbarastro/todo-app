@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { DndContext, PointerSensor, useSensor, useSensors, DragOverlay, rectIntersection } from "@dnd-kit/core";
 import useTodos from "./hooks/useTodos";
 import useAuth from "./hooks/useAuth";
-import { KOLOM, PRIORITY, PROFIT_CENTERS, BULAN, HARI, USERS } from "./constants";
+import { KOLOM, PRIORITY, PROFIT_CENTERS, BULAN, HARI } from "./constants";
 import Sidebar from "./components/Sidebar";
 import FilterBar from "./components/FilterBar";
 import DraggableCard from "./components/DraggableCard";
@@ -17,16 +17,15 @@ import ModalView from "./components/ModalView";
 import ModalSettings from "./components/ModalSettings";
 import useNotifications from "./hooks/useNotifications";
 
-
 export default function App() {
   const { user, login, logout, error, setError, loading, members, addMember, deleteMember } = useAuth();
   const { todos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat } = useTodos(user);
   const { notifications, unreadCount, markAllRead } = useNotifications(user);
   const [showNotif, setShowNotif] = useState(false);
-
   const [viewTodo, setViewTodo] = useState(null);
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [imageRef, setImageRef] = useState(null);
+
   useEffect(() => {
     const handler = (e) => {
       if (!e.target.closest("[data-dropdown]")) setDropdownOpen(false);
@@ -42,48 +41,46 @@ export default function App() {
   const [input, setInput] = useState("");
   const [desc, setDesc] = useState("");
   const [deadline, setDeadline] = useState("");
-  const [assignTo, setAssignTo] = useState(USERS[0]);
+  const [assignTo, setAssignTo] = useState("");
   const [priority, setPriority] = useState("medium");
   const [selectedPC, setSelectedPC] = useState([]);
-
   const [view, setView] = useState("kanban");
   const [filterUser, setFilterUser] = useState("semua");
   const [filterPriority, setFilterPriority] = useState("semua");
   const [search, setSearch] = useState("");
-
   const [kalenderBulan, setKalenderBulan] = useState(new Date().getMonth());
   const [kalenderTahun, setKalenderTahun] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
-
   const [activeTodo, setActiveTodo] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  // Kalau belum login, tampilkan halaman login
   if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>Loading...</div>;
   if (!user) return <LoginPage onLogin={login} error={error} setError={setError} />;
 
   const openModal = (todo = null) => {
-    if (todo) {
-      setEditTodo(todo); setInput(todo.teks); setDesc(todo.desc || "");
-      setDeadline(todo.deadline || ""); setAssignTo(todo.user); setPriority(todo.priority || "medium");
-      setSelectedPC(todo.profitCenters || []);
-    } else {
-      setEditTodo(null); setInput(""); setDesc(""); setDeadline(""); setAssignTo(USERS[0]); setPriority("medium"); setSelectedPC([]);
-    }
-    setShowModal(true);
-  };
+  if (todo) {
+    setEditTodo(todo); setInput(todo.teks); setDesc(todo.desc || "");
+    setDeadline(todo.deadline || ""); setAssignTo(todo.user); setPriority(todo.priority || "medium");
+    setSelectedPC(todo.profitCenters || []); setImageRef(todo.imageRef || null); // ← tambah ini
+  } else {
+    setEditTodo(null); setInput(""); setDesc(""); setDeadline("");
+    setAssignTo(members[0]?.name || "");
+    setPriority("medium"); setSelectedPC([]); setImageRef(null); // ← tambah ini
+  }
+  setShowModal(true);
+};
 
   const closeModal = () => { setShowModal(false); setEditTodo(null); };
 
   const simpan = () => {
-    if (!input) return;
-    const data = { teks: input, desc, deadline: deadline || null, user: assignTo, priority, profitCenters: selectedPC };
-    if (editTodo) editTodoItem(editTodo.id, data);
-    else tambahTodo(data);
-    closeModal();
-  };
+  if (!input) return;
+  const data = { teks: input, desc, deadline: deadline || null, user: assignTo, priority, profitCenters: selectedPC, imageRef: imageRef || null }; // ← tambah imageRef
+  if (editTodo) editTodoItem(editTodo.id, data);
+  else tambahTodo(data);
+  closeModal();
+};
 
   const todosTampil = todos.filter(t => {
     const matchUser = filterUser === "semua" || t.user === filterUser;
@@ -237,13 +234,13 @@ export default function App() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
 
-              {/* Add Task — pindah ke kiri */}
               <button onClick={() => openModal()} style={{ padding: "11px 22px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600", boxShadow: "0 4px 12px rgba(67,97,238,0.3)" }}>
                 ＋ Add Task
               </button>
+
               {/* Notifikasi Bell */}
               <div style={{ position: "relative" }} data-notif>
-                <button onClick={() => { setShowNotif(o => !o); markAllRead(); }} style={{ position: "relative", background: "white", border: "1px solid #e0e0e0", borderRadius: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "18px" }}>
+                <button onClick={() => setShowNotif(o => !o)} style={{ position: "relative", background: "white", border: "1px solid #e0e0e0", borderRadius: "10px", padding: "10px 14px", cursor: "pointer", fontSize: "18px" }}>
                   🔔
                   {unreadCount > 0 && (
                     <span style={{ position: "absolute", top: "-6px", right: "-6px", background: "#e94560", color: "white", borderRadius: "50%", fontSize: "11px", fontWeight: "700", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -254,29 +251,41 @@ export default function App() {
 
                 {showNotif && (
                   <div style={{ position: "absolute", top: "110%", right: 0, background: "white", borderRadius: "12px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", border: "1px solid #f0f0f0", width: "320px", zIndex: 100, maxHeight: "400px", overflowY: "auto" }}>
-                    <div style={{ padding: "14px 16px", borderBottom: "1px solid #f0f0f0", fontWeight: "700", fontSize: "14px", color: "#1a1a2e" }}>
-                      🔔 Notifikasi
+                    <div style={{ padding: "14px 16px", borderBottom: "1px solid #f0f0f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontWeight: "700", fontSize: "14px", color: "#1a1a2e" }}>🔔 Notifikasi</span>
+                      {notifications.some(n => !n.read) && (
+                        <button onClick={markAllRead} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "12px", color: "#4361ee", fontWeight: "600" }}>
+                          Tandai semua dibaca
+                        </button>
+                      )}
                     </div>
                     {notifications.length === 0
                       ? <div style={{ padding: "20px", textAlign: "center", color: "#aaa", fontSize: "13px" }}>Tidak ada notifikasi</div>
-                      : notifications.map(n => (
-                        <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #f9f9f9", background: n.read ? "white" : "#f8f9ff" }}>
-                          <div style={{ fontSize: "13px", color: "#1a1a2e" }}>{n.message}</div>
-                          <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px" }}>{new Date(n.createdAt).toLocaleString("id-ID")}</div>
-                        </div>
-                      ))
+                      : notifications.map(n => {
+                          const todo = todos.find(t => t.id === n.todoId);
+                          return (
+                            <div key={n.id}
+                              onClick={() => { if (todo) { setViewTodo(todo); setShowNotif(false); } }}
+                              style={{ padding: "12px 16px", borderBottom: "1px solid #f9f9f9", background: n.read ? "white" : "#f8f9ff", cursor: todo ? "pointer" : "default" }}
+                              onMouseEnter={e => e.currentTarget.style.background = "#f0f4ff"}
+                              onMouseLeave={e => e.currentTarget.style.background = n.read ? "white" : "#f8f9ff"}
+                            >
+                              <div style={{ fontSize: "13px", color: "#1a1a2e", fontWeight: n.read ? "400" : "600" }}>{n.message}</div>
+                              <div style={{ fontSize: "11px", color: "#aaa", marginTop: "4px", display: "flex", justifyContent: "space-between" }}>
+                                <span>{new Date(n.createdAt).toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short" })} - {new Date(n.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB</span>
+                                {todo && <span style={{ color: "#4361ee" }}>Lihat task →</span>}
+                              </div>
+                            </div>
+                          );
+                        })
                     }
                   </div>
                 )}
-              </div>
+              </div>{/* tutup data-notif */}
 
               {/* User dropdown */}
               <div style={{ position: "relative" }} data-dropdown>
-                <button onClick={() => setDropdownOpen(o => !o)} style={{
-                  display: "flex", alignItems: "center", gap: "10px",
-                  padding: "8px 14px", borderRadius: "10px", border: "1px solid #e0e0e0",
-                  background: "white", cursor: "pointer",
-                }}>
+                <button onClick={() => setDropdownOpen(o => !o)} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 14px", borderRadius: "10px", border: "1px solid #e0e0e0", background: "white", cursor: "pointer" }}>
                   <span style={{ fontSize: "20px" }}>👤</span>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontSize: "14px", fontWeight: "600", color: "#1a1a2e" }}>{user.name}</div>
@@ -286,44 +295,25 @@ export default function App() {
                 </button>
 
                 {dropdownOpen && (
-                  <div style={{
-                    position: "absolute", top: "110%", right: 0,
-                    background: "white", borderRadius: "10px",
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
-                    border: "1px solid #f0f0f0", minWidth: "160px", zIndex: 100,
-                  }}>
+                  <div style={{ position: "absolute", top: "110%", right: 0, background: "white", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", border: "1px solid #f0f0f0", minWidth: "160px", zIndex: 100 }}>
                     {user?.role === "admin" && (
-                      <button onClick={() => { setShowSettings(true); setDropdownOpen(false); }} style={{
-                        width: "100%", padding: "12px 16px", border: "none",
-                        background: "none", cursor: "pointer", textAlign: "left",
-                        fontSize: "13px", color: "#4361ee", fontWeight: "500",
-                        display: "flex", alignItems: "center", gap: "8px",
-                        borderRadius: "10px",
-                      }}
+                      <button onClick={() => { setShowSettings(true); setDropdownOpen(false); }}
+                        style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontSize: "13px", color: "#4361ee", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px", borderRadius: "10px" }}
                         onMouseEnter={e => e.currentTarget.style.background = "#eef0ff"}
                         onMouseLeave={e => e.currentTarget.style.background = "none"}
-                      >
-                        ⚙️ Settings
-                      </button>
+                      >⚙️ Settings</button>
                     )}
-                    <button onClick={() => { logout(); setDropdownOpen(false); }} style={{
-                      width: "100%", padding: "12px 16px", border: "none",
-                      background: "none", cursor: "pointer", textAlign: "left",
-                      fontSize: "13px", color: "#e94560", fontWeight: "500",
-                      display: "flex", alignItems: "center", gap: "8px",
-                      borderRadius: "10px",
-                    }}
+                    <button onClick={() => { logout(); setDropdownOpen(false); }}
+                      style={{ width: "100%", padding: "12px 16px", border: "none", background: "none", cursor: "pointer", textAlign: "left", fontSize: "13px", color: "#e94560", fontWeight: "500", display: "flex", alignItems: "center", gap: "8px", borderRadius: "10px" }}
                       onMouseEnter={e => e.currentTarget.style.background = "#fff0f3"}
                       onMouseLeave={e => e.currentTarget.style.background = "none"}
-                    >
-                      🚪 Logout
-                    </button>
+                    >🚪 Logout</button>
                   </div>
                 )}
-              </div>
+              </div>{/* tutup data-dropdown */}
 
             </div>
-          </div>
+          </div>{/* tutup HEADER */}
 
           {/* STAT CARDS */}
           <div style={{ display: "flex", gap: "16px", marginBottom: "20px" }}>
@@ -350,7 +340,8 @@ export default function App() {
             filterPriority={filterPriority} setFilterPriority={setFilterPriority}
             todos={todos}
           />
-        </div>
+
+        </div>{/* tutup padding div */}
 
         {/* CONTENT */}
         <div style={{ flex: 1, padding: "0 30px 30px", overflowY: "auto" }}>
@@ -359,7 +350,8 @@ export default function App() {
           {view === "calendar" && renderKalender()}
           {view === "weekly" && <WeeklyCalendar todos={todosTampil} openModal={openModal} onView={setViewTodo} />}
         </div>
-      </div>
+
+      </div>{/* tutup flex-1 div */}
 
       {showModal && (
         <ModalTodo
@@ -368,6 +360,8 @@ export default function App() {
           priority={priority} setPriority={setPriority} selectedPC={selectedPC} setSelectedPC={setSelectedPC}
           onSave={simpan} onClose={closeModal}
           members={members}
+          imageRef={imageRef}
+  setImageRef={setImageRef}
         />
       )}
 
@@ -378,6 +372,7 @@ export default function App() {
           onCancel={() => setConfirmDelete(null)}
         />
       )}
+
       {viewTodo && (
         <ModalView
           todo={viewTodo}
@@ -396,7 +391,7 @@ export default function App() {
           onClose={() => setShowSettings(false)}
         />
       )}
-    </div>
 
+    </div>
   );
 }

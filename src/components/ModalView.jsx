@@ -31,6 +31,11 @@ export default function ModalView({ todo, onEdit, onClose, isDeadlineLewat }) {
             <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.7, margin: 0 }}>{todo.desc}</p>
           </div>
         )}
+        {todo.imageRef && (
+          <div style={{ marginBottom: "16px", borderRadius: "10px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
+            <img src={todo.imageRef} alt="referensi" style={{ width: "100%", maxHeight: "220px", objectFit: "cover", display: "block" }} />
+          </div>
+        )}
 
         {/* Details */}
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
@@ -52,7 +57,9 @@ export default function ModalView({ todo, onEdit, onClose, isDeadlineLewat }) {
           {todo.createdAt && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontSize: "14px" }}>🕐</span>
-              <span style={{ fontSize: "13px", color: "#aaa" }}>Dibuat: {todo.createdAt}</span>
+              <span style={{ fontSize: "13px", color: "#aaa" }}>
+                Dibuat: {new Date(todo.createdAt).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} - {new Date(todo.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB
+              </span>
             </div>
           )}
         </div>
