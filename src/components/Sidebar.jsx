@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { USERS } from "../constants";
 
-export default function Sidebar({ filterUser, setFilterUser, stats }) {
+export default function Sidebar({ filterUser, setFilterUser, stats, members }) {
   const [menuDesignerOpen, setMenuDesignerOpen] = useState(true);
   const { total, selesai, progress, lewat } = stats;
 
@@ -21,7 +20,7 @@ export default function Sidebar({ filterUser, setFilterUser, stats }) {
 
       {menuDesignerOpen && (
         <div style={{ paddingLeft: "8px", display: "flex", flexDirection: "column", gap: "2px", marginTop: "2px" }}>
-          {["semua", ...USERS].map(u => (
+          {["semua", ...members.map(m => m.name)].map(u => (
             <button key={u} onClick={() => setFilterUser(u)} style={{ padding: "9px 14px", borderRadius: "8px", border: "none", background: filterUser === u ? "#4361ee" : "transparent", color: filterUser === u ? "white" : "#666", cursor: "pointer", fontSize: "13px", width: "100%", textAlign: "left", fontWeight: filterUser === u ? "600" : "400" }}>
               👤 {u}
             </button>

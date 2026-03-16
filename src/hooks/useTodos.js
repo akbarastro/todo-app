@@ -1,32 +1,49 @@
 import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import {
+  collection, addDoc, updateDoc, deleteDoc,
+  doc, onSnapshot, query, orderBy, where
+} from "firebase/firestore";
 
-export default function useTodos() {
-  const [todos, setTodos] = useState(() => {
-    const saved = localStorage.getItem("todos-v7");
-    return saved ? JSON.parse(saved) : [];
-  });
+export default function useTodos(user) {
+  const [todos, setTodos] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem("todos-v7", JSON.stringify(todos));
-  }, [todos]);
+    if (!user) return;
 
-  const tambahTodo = (data) => {
-    setTodos(prev => [...prev, { id: Date.now(), status: "todo", createdAt: new Date().toLocaleDateString("id-ID"), ...data }]);
+    // Admin lihat semua, member lihat milik sendiri
+    const q = user.role === "admin"
+      ? query(collection(db, "todos"), orderBy("createdAt", "desc"))
+      : query(collection(db, "todos"), where("user", "==", user.name), orderBy("createdAt", "desc"));
+
+    const unsub = onSnapshot(q, (snap) => {
+      setTodos(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => unsub();
+  }, [user]);
+
+  const tambahTodo = async (data) => {
+    await addDoc(collection(db, "todos"), {
+      ...data,
+      status: "todo",
+      createdAt: new Date().toISOString(),
+    });
   };
 
-  const editTodoItem = (id, data) => {
-    setTodos(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
+  const editTodoItem = async (id, data) => {
+    await updateDoc(doc(db, "todos", id), data);
   };
 
-  const hapusTodo = (id) => {
-    setTodos(prev => prev.filter(t => t.id !== id));
+  const hapusTodo = async (id) => {
+    await deleteDoc(doc(db, "todos", id));
   };
 
-  const pindahStatus = (id, newStatus) => {
-    setTodos(prev => prev.map(t => String(t.id) === String(id) ? { ...t, status: newStatus } : t));
+  const pindahStatus = async (id, newStatus) => {
+    await updateDoc(doc(db, "todos", id), { status: newStatus });
   };
 
   const isDeadlineLewat = (dl) => dl && new Date(dl) < new Date();
 
-  return { todos, setTodos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat };
+  return { todos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat };
 }

@@ -1,39 +1,81 @@
-import { useState } from "react";
-
-const ACCOUNTS = [
-  { username: "abay", password: "abay123", name: "Abay", role: "admin" },
-  { username: "budi", password: "budi123", name: "Budi", role: "member" },
-  { username: "ani", password: "ani123", name: "Ani", role: "member" },
-  { username: "sari", password: "sari123", name: "Sari", role: "member" },
-];
+import { useState, useEffect } from "react";
+import { auth, db, firebaseConfig } from "../firebase";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  getAuth
+} from "firebase/auth";
+import { initializeApp, deleteApp } from "firebase/app";
+import { doc, getDoc, setDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore";
 
 export default function useAuth() {
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem("auth-user");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [members, setMembers] = useState([]);
 
-  const login = (username, password) => {
-    const found = ACCOUNTS.find(
-      a => a.username === username.toLowerCase() && a.password === password
-    );
-    if (found) {
-      const userData = { username: found.username, name: found.name, role: found.role };
-      localStorage.setItem("auth-user", JSON.stringify(userData));
-      setUser(userData);
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const docRef = doc(db, "users", firebaseUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUser({ uid: firebaseUser.uid, email: firebaseUser.email, ...docSnap.data() });
+        }
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "users"), (snap) => {
+      setMembers(snap.docs.map(d => ({ uid: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, []);
+
+  const login = async (email, password) => {
+    try {
       setError("");
-      return true;
-    } else {
-      setError("Username atau password salah!");
-      return false;
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch {
+      setError("Email atau password salah!");
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem("auth-user");
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
   };
 
-  return { user, login, logout, error, setError };
+  const addMember = async (email, password, name, role = "member") => {
+    let secondaryApp;
+    try {
+      secondaryApp = initializeApp(firebaseConfig, "secondary");
+      const secondaryAuth = getAuth(secondaryApp);
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+      await setDoc(doc(db, "users", cred.user.uid), { name, email, role });
+      await deleteApp(secondaryApp);
+      return { success: true };
+    } catch (e) {
+      if (secondaryApp) await deleteApp(secondaryApp);
+      return { success: false, message: e.message };
+    }
+  };
+
+  const deleteMember = async (uid) => {
+    try {
+      await deleteDoc(doc(db, "users", uid));
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: e.message };
+    }
+  };
+
+  return { user, loading, login, logout, error, setError, members, addMember, deleteMember };
 }

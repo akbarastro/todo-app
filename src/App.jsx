@@ -14,10 +14,12 @@ import LoginPage from "./components/LoginPage";
 import PCLabel from "./components/PCLabel";
 import WeeklyCalendar from "./components/WeeklyCalendar";
 import ModalView from "./components/ModalView";
+import ModalSettings from "./components/ModalSettings";
+
 
 export default function App() {
-  const { user, login, logout, error, setError } = useAuth();
-  const { todos, setTodos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat } = useTodos();
+  const { user, login, logout, error, setError, loading, members, addMember, deleteMember } = useAuth();
+  const { todos, tambahTodo, editTodoItem, hapusTodo, pindahStatus, isDeadlineLewat } = useTodos(user);
 
   const [viewTodo, setViewTodo] = useState(null);
 
@@ -31,6 +33,7 @@ export default function App() {
   }, []);
 
   const [showModal, setShowModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [editTodo, setEditTodo] = useState(null);
   const [input, setInput] = useState("");
   const [desc, setDesc] = useState("");
@@ -54,6 +57,7 @@ export default function App() {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   // Kalau belum login, tampilkan halaman login
+  if (loading) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>Loading...</div>;
   if (!user) return <LoginPage onLogin={login} error={error} setError={setError} />;
 
   const openModal = (todo = null) => {
@@ -216,7 +220,7 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#f0f2f5", fontFamily: "'Segoe UI', sans-serif" }}>
-      <Sidebar filterUser={filterUser} setFilterUser={setFilterUser} stats={stats} />
+      <Sidebar filterUser={filterUser} setFilterUser={setFilterUser} stats={stats} members={members} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         <div style={{ padding: "24px 30px 0", background: "#f0f2f5" }}>
@@ -256,6 +260,20 @@ export default function App() {
           boxShadow: "0 4px 20px rgba(0,0,0,0.12)",
           border: "1px solid #f0f0f0", minWidth: "160px", zIndex: 100,
         }}>
+          {user?.role === "admin" && (
+        <button onClick={() => { setShowSettings(true); setDropdownOpen(false); }} style={{
+    width: "100%", padding: "12px 16px", border: "none",
+    background: "none", cursor: "pointer", textAlign: "left",
+    fontSize: "13px", color: "#4361ee", fontWeight: "500",
+    display: "flex", alignItems: "center", gap: "8px",
+    borderRadius: "10px",
+  }}
+    onMouseEnter={e => e.currentTarget.style.background = "#eef0ff"}
+    onMouseLeave={e => e.currentTarget.style.background = "none"}
+  >
+    ⚙️ Settings
+  </button>
+)}
           <button onClick={() => { logout(); setDropdownOpen(false); }} style={{
             width: "100%", padding: "12px 16px", border: "none",
             background: "none", cursor: "pointer", textAlign: "left",
@@ -293,12 +311,12 @@ export default function App() {
             ))}
           </div>
 
+          {/* FILTER BAR */}
           <FilterBar
           view={view} setView={setView}
-            search={search} setSearch={setSearch}
-            filterPriority={filterPriority} setFilterPriority={setFilterPriority}
-            todos={todos}
-            setTodos={setTodos}
+          search={search} setSearch={setSearch}
+          filterPriority={filterPriority} setFilterPriority={setFilterPriority}
+          todos={todos}
           />
         </div>
 
@@ -335,6 +353,16 @@ export default function App() {
       isDeadlineLewat={isDeadlineLewat}
       />
       )}
+
+      {showSettings && (
+  <ModalSettings
+    members={members}
+    currentUser={user}
+    onAdd={addMember}
+    onDelete={deleteMember}
+    onClose={() => setShowSettings(false)}
+  />
+)}
     </div>
     
   );
