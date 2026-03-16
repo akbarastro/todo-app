@@ -25,6 +25,8 @@ export default function App() {
   const [viewTodo, setViewTodo] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [imageRef, setImageRef] = useState(null);
+  const [checklist, setChecklist] = useState([]);
+  const [startDate, setStartDate] = useState("");
 
   useEffect(() => {
     const handler = (e) => {
@@ -60,27 +62,33 @@ export default function App() {
   if (!user) return <LoginPage onLogin={login} error={error} setError={setError} />;
 
   const openModal = (todo = null) => {
-    if (todo) {
-      setEditTodo(todo); setInput(todo.teks); setDesc(todo.desc || "");
-      setDeadline(todo.deadline || ""); setAssignTo(todo.user); setPriority(todo.priority || "medium");
-      setSelectedPC(todo.profitCenters || []); setImageRef(todo.imageRef || null); // ← tambah ini
-    } else {
-      setEditTodo(null); setInput(""); setDesc(""); setDeadline("");
-      setAssignTo(members[0]?.name || "");
-      setPriority("medium"); setSelectedPC([]); setImageRef(null); // ← tambah ini
-    }
-    setShowModal(true);
-  };
+  if (todo) {
+    setEditTodo(todo); setInput(todo.teks); setDesc(todo.desc || "");
+    setDeadline(todo.deadline || ""); setStartDate(todo.startDate || "");
+    setAssignTo(todo.user); setPriority(todo.priority || "medium");
+    setSelectedPC(todo.profitCenters || []); setImageRef(todo.imageRef || null);
+    setChecklist(todo.checklist || []);
+  } else {
+    setEditTodo(null); setInput(""); setDesc(""); setDeadline(""); setStartDate("");
+    setAssignTo(members[0]?.name || "");
+    setPriority("medium"); setSelectedPC([]); setImageRef(null); setChecklist([]);
+  }
+  setShowModal(true);
+};
 
   const closeModal = () => { setShowModal(false); setEditTodo(null); };
 
   const simpan = () => {
-    if (!input) return;
-    const data = { teks: input, desc, deadline: deadline || null, user: assignTo, priority, profitCenters: selectedPC, imageRef: imageRef || null }; // ← tambah imageRef
-    if (editTodo) editTodoItem(editTodo.id, data);
-    else tambahTodo(data);
-    closeModal();
+  if (!input) return;
+  const data = {
+    teks: input, desc, deadline: deadline || null, startDate: startDate || null,
+    user: assignTo, priority, profitCenters: selectedPC,
+    imageRef: imageRef || null, checklist
   };
+  if (editTodo) editTodoItem(editTodo.id, data);
+  else tambahTodo(data);
+  closeModal();
+};
 
   const todosTampil = todos.filter(t => {
     const matchUser = filterUser === "semua" || t.user === filterUser;
@@ -120,7 +128,7 @@ export default function App() {
               onAddTask={() => openModal()} // ← tambah ini
             >
               {colTodos.map(todo => (
-                <DraggableCard key={todo.id} todo={todo} openModal={openModal} onDelete={id => setConfirmDelete(id)} isDeadlineLewat={isDeadlineLewat} />
+                <DraggableCard key={todo.id} todo={todo} openModal={openModal} onDelete={id => setConfirmDelete(id)} isDeadlineLewat={isDeadlineLewat} onView={setViewTodo} />
               ))}
             </DroppableCol>
           );
@@ -356,14 +364,14 @@ export default function App() {
 
       {showModal && (
         <ModalTodo
-          editTodo={editTodo} input={input} setInput={setInput} desc={desc} setDesc={setDesc}
-          deadline={deadline} setDeadline={setDeadline} assignTo={assignTo} setAssignTo={setAssignTo}
-          priority={priority} setPriority={setPriority} selectedPC={selectedPC} setSelectedPC={setSelectedPC}
-          onSave={simpan} onClose={closeModal}
-          members={members}
-          imageRef={imageRef}
-          setImageRef={setImageRef}
-        />
+  editTodo={editTodo} input={input} setInput={setInput} desc={desc} setDesc={setDesc}
+  deadline={deadline} setDeadline={setDeadline} startDate={startDate} setStartDate={setStartDate}
+  assignTo={assignTo} setAssignTo={setAssignTo}
+  priority={priority} setPriority={setPriority} selectedPC={selectedPC} setSelectedPC={setSelectedPC}
+  checklist={checklist} setChecklist={setChecklist}
+  onSave={simpan} onClose={closeModal}
+  members={members} imageRef={imageRef} setImageRef={setImageRef}
+/>
       )}
 
       {confirmDelete && (

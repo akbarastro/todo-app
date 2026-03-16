@@ -7,10 +7,14 @@ export default function ModalView({ todo, onEdit, onClose, isDeadlineLewat }) {
   const col = KOLOM[todo.status];
   const lewat = isDeadlineLewat(todo.deadline) && todo.status !== "selesai";
 
+  const doneCount = todo.checklist?.filter(c => c.done).length || 0;
+  const totalCheck = todo.checklist?.length || 0;
+  const pct = totalCheck > 0 ? Math.round((doneCount / totalCheck) * 100) : 0;
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}
       onClick={onClose}>
-      <div style={{ background: "white", borderRadius: "16px", padding: "32px", width: "460px", maxWidth: "90vw", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+      <div style={{ background: "white", borderRadius: "16px", padding: "32px", width: "460px", maxWidth: "90vw", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
         onClick={e => e.stopPropagation()}>
 
         {/* Header */}
@@ -31,6 +35,8 @@ export default function ModalView({ todo, onEdit, onClose, isDeadlineLewat }) {
             <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.7, margin: 0 }}>{todo.desc}</p>
           </div>
         )}
+
+        {/* Gambar */}
         {todo.imageRef && (
           <div style={{ marginBottom: "16px", borderRadius: "10px", overflow: "hidden", border: "1px solid #f0f0f0" }}>
             <img src={todo.imageRef} alt="referensi" style={{ width: "100%", maxHeight: "220px", objectFit: "cover", display: "block" }} />
@@ -39,27 +45,57 @@ export default function ModalView({ todo, onEdit, onClose, isDeadlineLewat }) {
 
         {/* Details */}
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
-          {todo.deadline && (
+
+          {/* Due date range */}
+          {(todo.startDate || todo.deadline) && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontSize: "14px" }}>📅</span>
               <span style={{ fontSize: "13px", color: lewat ? "#e94560" : "#555", fontWeight: lewat ? "600" : "400" }}>
-                {new Date(todo.deadline).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                {todo.startDate ? new Date(todo.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : ""}
+                {todo.startDate && todo.deadline ? " → " : ""}
+                {todo.deadline ? new Date(todo.deadline).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : ""}
                 {lewat && " — Overdue!"}
               </span>
             </div>
           )}
+
+          {/* Assign */}
           {todo.user && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontSize: "14px" }}>👤</span>
               <span style={{ fontSize: "13px", color: "#555" }}>{todo.user}</span>
             </div>
           )}
+
+          {/* Created at */}
           {todo.createdAt && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontSize: "14px" }}>🕐</span>
               <span style={{ fontSize: "13px", color: "#aaa" }}>
                 Dibuat: {new Date(todo.createdAt).toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} - {new Date(todo.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jakarta" })} WIB
               </span>
+            </div>
+          )}
+
+          {/* Checklist */}
+          {totalCheck > 0 && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+              <span style={{ fontSize: "14px" }}>✅</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#aaa", marginBottom: "6px" }}>
+                  <span>{doneCount}/{totalCheck} selesai</span>
+                  <span>{pct}%</span>
+                </div>
+                <div style={{ background: "#f0f0f0", borderRadius: "10px", height: "6px", marginBottom: "10px", overflow: "hidden" }}>
+                  <div style={{ width: `${pct}%`, height: "100%", background: pct === 100 ? "#4caf50" : "#4361ee", borderRadius: "10px" }} />
+                </div>
+                {todo.checklist.map(c => (
+                  <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "5px 0", borderBottom: "1px solid #f5f5f5" }}>
+                    <span style={{ fontSize: "13px" }}>{c.done ? "☑️" : "☐"}</span>
+                    <span style={{ fontSize: "13px", color: c.done ? "#aaa" : "#333", textDecoration: c.done ? "line-through" : "none" }}>{c.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -79,17 +115,10 @@ export default function ModalView({ todo, onEdit, onClose, isDeadlineLewat }) {
 
         {/* Actions */}
         <div style={{ display: "flex", gap: "10px", borderTop: "1px solid #f0f0f0", paddingTop: "20px" }}>
-          <button onClick={onEdit} style={{
-            flex: 1, padding: "12px", borderRadius: "10px", border: "none",
-            background: "#4361ee", color: "white", cursor: "pointer",
-            fontSize: "14px", fontWeight: "600",
-          }}>
+          <button onClick={onEdit} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "14px", fontWeight: "600" }}>
             ✏️ Edit Task
           </button>
-          <button onClick={onClose} style={{
-            padding: "12px 20px", borderRadius: "10px", border: "1px solid #e0e0e0",
-            background: "white", color: "#666", cursor: "pointer", fontSize: "14px",
-          }}>
+          <button onClick={onClose} style={{ padding: "12px 20px", borderRadius: "10px", border: "1px solid #e0e0e0", background: "white", color: "#666", cursor: "pointer", fontSize: "14px" }}>
             Tutup
           </button>
         </div>

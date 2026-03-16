@@ -2,30 +2,34 @@ import { useState } from "react";
 import { PRIORITY, INPUT_STYLE } from "../constants";
 import ProfitCenterPicker from "./ProfitCenterPicker";
 
-export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, deadline, setDeadline, assignTo, setAssignTo, priority, setPriority, selectedPC, setSelectedPC, onSave, onClose, members, setImageRef }) {
+export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, deadline, setDeadline, startDate, setStartDate, assignTo, setAssignTo, priority, setPriority, selectedPC, setSelectedPC, onSave, onClose, members, setImageRef, checklist, setChecklist }) {
   const [imagePreview, setImagePreview] = useState(editTodo?.imageRef || null);
   const [imageError, setImageError] = useState("");
+  const [newItem, setNewItem] = useState("");
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 500 * 1024) {
-      setImageError("Ukuran gambar maksimal 500KB!");
-      return;
-    }
+    if (file.size > 500 * 1024) { setImageError("Ukuran gambar maksimal 500KB!"); return; }
     setImageError("");
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-      setImageRef(reader.result);
-    };
+    reader.onloadend = () => { setImagePreview(reader.result); setImageRef(reader.result); };
     reader.readAsDataURL(file);
   };
 
-  const handleRemoveImage = () => {
-    setImagePreview(null);
-    setImageRef(null);
+  const handleRemoveImage = () => { setImagePreview(null); setImageRef(null); };
+
+  const addCheckItem = () => {
+    if (!newItem.trim()) return;
+    setChecklist([...checklist, { id: Date.now(), text: newItem.trim(), done: false }]);
+    setNewItem("");
   };
+
+  const toggleCheck = (id) => setChecklist(checklist.map(c => c.id === id ? { ...c, done: !c.done } : c));
+  const removeCheck = (id) => setChecklist(checklist.filter(c => c.id !== id));
+
+  const doneCount = checklist.filter(c => c.done).length;
+  const progress = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
 
   return (
     <div onClick={e => e.target === e.currentTarget && onClose()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(4px)" }}>
@@ -36,13 +40,50 @@ export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, de
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+
+          {/* Nama Todo */}
           <div>
             <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>Nama Todo *</label>
             <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && onSave()} placeholder="Contoh: Design landing page..." style={INPUT_STYLE} autoFocus />
           </div>
+
+          {/* Deskripsi */}
           <div>
             <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>Deskripsi</label>
             <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="Tambahkan deskripsi..." rows={3} style={{ ...INPUT_STYLE, resize: "vertical", fontFamily: "inherit" }} />
+          </div>
+
+          {/* Checklist */}
+          <div>
+            <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>✅ Checklist <span style={{ color: "#bbb" }}>(opsional)</span></label>
+
+            {checklist.length > 0 && (
+              <div style={{ marginBottom: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "#aaa", marginBottom: "4px" }}>
+                  <span>{doneCount}/{checklist.length} selesai</span>
+                  <span>{progress}%</span>
+                </div>
+                <div style={{ background: "#f0f0f0", borderRadius: "10px", height: "6px", overflow: "hidden" }}>
+                  <div style={{ width: `${progress}%`, height: "100%", background: progress === 100 ? "#4caf50" : "#4361ee", borderRadius: "10px", transition: "width 0.3s" }} />
+                </div>
+              </div>
+            )}
+
+            {checklist.map(c => (
+              <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 0", borderBottom: "1px solid #f5f5f5" }}>
+                <input type="checkbox" checked={c.done} onChange={() => toggleCheck(c.id)} style={{ width: "16px", height: "16px", cursor: "pointer", accentColor: "#4361ee" }} />
+                <span style={{ flex: 1, fontSize: "13px", color: c.done ? "#aaa" : "#333", textDecoration: c.done ? "line-through" : "none" }}>{c.text}</span>
+                <button onClick={() => removeCheck(c.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#ddd", fontSize: "14px" }}
+                  onMouseEnter={e => e.currentTarget.style.color = "#e94560"}
+                  onMouseLeave={e => e.currentTarget.style.color = "#ddd"}
+                >✕</button>
+              </div>
+            ))}
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
+              <input value={newItem} onChange={e => setNewItem(e.target.value)} onKeyDown={e => e.key === "Enter" && addCheckItem()} placeholder="Tambah item checklist..." style={{ ...INPUT_STYLE, flex: 1 }} />
+              <button onClick={addCheckItem} style={{ padding: "10px 14px", borderRadius: "8px", border: "none", background: "#4361ee", color: "white", cursor: "pointer", fontSize: "13px", fontWeight: "600", whiteSpace: "nowrap" }}>＋ Add</button>
+            </div>
           </div>
 
           {/* Upload Gambar */}
@@ -67,22 +108,37 @@ export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, de
             {imageError && <p style={{ color: "#e94560", fontSize: "12px", marginTop: "6px" }}>{imageError}</p>}
           </div>
 
+          {/* Profit Center */}
           <div>
             <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>💎 Profit Center</label>
             <ProfitCenterPicker selected={selectedPC} onChange={setSelectedPC} />
           </div>
-          <div style={{ display: "flex", gap: "12px" }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>Deadline</label>
-              <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={INPUT_STYLE} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>Assign To</label>
-              <select value={assignTo} onChange={e => setAssignTo(e.target.value)} style={INPUT_STYLE}>
-                {members.map(m => <option key={m.uid} value={m.name}>{m.name}</option>)}
-              </select>
+
+          {/* Due Date Range */}
+          <div>
+            <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>📅 Due Date</label>
+            <div style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "11px", color: "#bbb", display: "block", marginBottom: "4px" }}>Start Date</label>
+                <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={INPUT_STYLE} />
+              </div>
+              <span style={{ color: "#aaa", fontSize: "13px", paddingBottom: "11px" }}>→</span>
+              <div style={{ flex: 1 }}>
+                <label style={{ fontSize: "11px", color: "#bbb", display: "block", marginBottom: "4px" }}>End Date</label>
+                <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={INPUT_STYLE} />
+              </div>
             </div>
           </div>
+
+          {/* Assign To */}
+          <div>
+            <label style={{ fontSize: "13px", color: "#888", marginBottom: "6px", display: "block", fontWeight: "500" }}>Assign To</label>
+            <select value={assignTo} onChange={e => setAssignTo(e.target.value)} style={INPUT_STYLE}>
+              {(members || []).map(m => <option key={m.uid} value={m.name}>{m.name}</option>)}
+            </select>
+          </div>
+
+          {/* Priority */}
           <div>
             <label style={{ fontSize: "13px", color: "#888", marginBottom: "8px", display: "block", fontWeight: "500" }}>Priority</label>
             <div style={{ display: "flex", gap: "8px" }}>
@@ -93,6 +149,7 @@ export default function ModalTodo({ editTodo, input, setInput, desc, setDesc, de
               ))}
             </div>
           </div>
+
         </div>
 
         <div style={{ display: "flex", gap: "10px", marginTop: "4px" }}>
